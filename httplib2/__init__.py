@@ -815,6 +815,13 @@ def proxy_info_from_environment(method='http'):
     pi = proxy_info_from_url(url, method)
 
     no_proxy = os.environ.get('no_proxy', os.environ.get('NO_PROXY', ''))
+    # Added a way of setting remote_dns via environment variable
+    env_rdns = method + '_remotedns'
+    if os.environ.get(env_rdns, os.environ.get(env_rdns.upper(), 'TRUE')).upper() == 'TRUE':
+        remote_dns = True
+    else:
+        remote_dns = False
+
     bypass_hosts = []
     if no_proxy:
         bypass_hosts = no_proxy.split(',')
@@ -886,12 +893,12 @@ class HTTPConnectionWithTimeout(httplib.HTTPConnection):
         if self.proxy_info and self.proxy_info.isgood():
             use_proxy = True
             proxy_type, proxy_host, proxy_port, proxy_rdns, proxy_user, proxy_pass = self.proxy_info.astuple()
-
+        else:
+            use_proxy = False
+        if use_proxy and proxy_rdns:
             host = proxy_host
             port = proxy_port
         else:
-            use_proxy = False
-
             host = self.host
             port = self.port
 
@@ -1008,12 +1015,12 @@ class HTTPSConnectionWithTimeout(httplib.HTTPSConnection):
         if self.proxy_info and self.proxy_info.isgood():
             use_proxy = True
             proxy_type, proxy_host, proxy_port, proxy_rdns, proxy_user, proxy_pass = self.proxy_info.astuple()
-
+        else:
+            use_proxy = False
+        if use_proxy and proxy_rdns:
             host = proxy_host
             port = proxy_port
         else:
-            use_proxy = False
-
             host = self.host
             port = self.port
 
